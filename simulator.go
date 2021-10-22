@@ -53,23 +53,23 @@ func OpenTcpTpm(c TcpConfig) (io.ReadWriteCloser, error) {
 	if c.PlatformPort == 0 {
 		c.PlatformPort = 2322
 	}
-	basePort := strings.Split(c.BaseAddress, ':')
+	basePort := strings.Split(c.Address, ':')
 	// Attempt to parse the portion of the base address after the colon for a port.
-	// Ignore the result if it doesn't parse, and take the BaseAddress as-is.
+	// Ignore the result if it doesn't parse, and take the Address as-is.
 	if len(basePort) > 1 {
 		if port, err := strconv.Atoi(basePort[1]); err == nil {
-			c.BaseAddress = basePort[0]
+			c.Address = basePort[0]
 			c.TPMPort = port
 			c.PlatformPort = port + 1
 		}
 	}
 
-	tpmAddr := fmt.Sprintf("%s:%d", c.BaseAddress, c.TPMPort)
+	tpmAddr := fmt.Sprintf("%s:%d", c.Address, c.TPMPort)
 	tpmConn, err := net.Dial("tcp", tpmAddr)
 	if err != nil {
 		return nil, fmt.Errorf("could not dial TPM: %w", err)
 	}
-	platAddr := fmt.Sprintf("%s:%d", c.BaseAddress, c.PlatformPort)
+	platAddr := fmt.Sprintf("%s:%d", c.Address, c.PlatformPort)
 	platConn, err := net.Dial("tcp", platAddr)
 	if err != nil {
 		return nil, fmt.Errorf("could not dial TPM platform: %w", err)
