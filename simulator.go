@@ -8,9 +8,15 @@ import (
 	"net"
 )
 
+type platformCommand uint32
+
 const (
-	sendCmd    uint32 = 8
-	sessionEnd uint32 = 20
+	powerOn    platformCommand = 1
+	powerOff   platformCommand = 2
+	sendCmd    platformCommand = 8
+	nvOn       platformCommand = 11
+	nvOff      platformCommand = 12
+	sessionEnd platformCommand = 20
 )
 
 // TcpConfig represents connection options for connecting to a running TPM
@@ -104,23 +110,13 @@ func (t *tcpTpm) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-type platformCommand uint32
-
-const (
-	powerOn    platformCommand = 1
-	powerOff   platformCommand = 2
-	nvOn       platformCommand = 11
-	nvOff      platformCommand = 12
-	sessionEnd platformCommand = 20
-)
-
 // sendPlatformCommand sends a command code to the running platform.
 func (t *tcpTpm) sendPlatformCommand(cmd platformCommand) error {
-	if err := binary.Write(p.conn, binary.BigEndian, cmd); err != nil {
+	if err := binary.Write(t.platConn, binary.BigEndian, cmd); err != nil {
 		return fmt.Errorf("could not send platform command 0x%x: %w", cmd, err)
 	}
 	var rc uint32
-	if err := binary.Read(p.conn, binary.BigEndian, &rc); err != nil {
+	if err := binary.Read(t.platConn, binary.BigEndian, &rc); err != nil {
 		return fmt.Errorf("could not read platform response: %w", err)
 	}
 	if rc != 0 {
