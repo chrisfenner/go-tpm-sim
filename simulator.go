@@ -53,7 +53,7 @@ func OpenTcpTpm(c TcpConfig) (io.ReadWriteCloser, error) {
 	if c.PlatformPort == 0 {
 		c.PlatformPort = 2322
 	}
-	basePort := strings.Split(c.Address, ':')
+	basePort := strings.Split(c.Address, ":")
 	// Attempt to parse the portion of the base address after the colon for a port.
 	// Ignore the result if it doesn't parse, and take the Address as-is.
 	if len(basePort) > 1 {
