@@ -67,7 +67,7 @@ func (t *tcpTpm) Read(p []byte) (int, error) {
 // tcpCmdHdr represents a framed TCP TPM command header as defined in part D of
 // https://trustedcomputinggroup.org/wp-content/uploads/TCG_TPM2_r1p59_Part4_SuppRoutines_code_pub.pdf
 type tcpCmdHdr struct {
-	tcpCmd   uint32
+	tcpCmd   platformCommand
 	locality uint8
 	cmdLen   uint32
 }
