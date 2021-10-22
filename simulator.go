@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"strconv"
+	"strings"
 )
 
 type platformCommand uint32
@@ -22,8 +24,10 @@ const (
 // TcpConfig represents connection options for connecting to a running TPM
 // via TCP (e.g., the Microsoft reference TPM 2.0 simulator).
 type TcpConfig struct {
-	// BaseAddress is the IP address or hostname of the running TPM simulator.
-	BaseAddress string
+	// Address is the IP address or hostname of the running TPM simulator.
+	// If this address contains a port number, the port number will be stripped and used for the TPM
+	// port of the simulator. The platform port will be assumed to be the TPM port + 1.
+	Address string
 	// TPMPort is the port number (default 2321) of the TPM command handler for the simulator.
 	TPMPort int
 	// PlatformPort is the port number (default 2322) of the platform command handler for the simulator.
@@ -42,7 +46,24 @@ type tcpTpm struct {
 
 // OpenTcpTpm opens a connection to a running TPM via TCP (e.g., the Microsoft
 // reference TPM 2.0 simulator).
-func OpenTcpTpm(c *TcpConfig) (io.ReadWriteCloser, error) {
+func OpenTcpTpm(c TcpConfig) (io.ReadWriteCloser, error) {
+	if c.TPMPort == 0 {
+		c.TPMPort = 2321
+	}
+	if c.PlatformPort == 0 {
+		c.PlatformPort = 2322
+	}
+	basePort := strings.Split(c.BaseAddress, ':')
+	// Attempt to parse the portion of the base address after the colon for a port.
+	// Ignore the result if it doesn't parse, and take the BaseAddress as-is.
+	if len(basePort) > 1 {
+		if port, err := strconv.Atoi(basePort[1]); err == nil {
+			c.BaseAddress = basePort[0]
+			c.TPMPort = port
+			c.PlatformPort = port + 1
+		}
+	}
+
 	tpmAddr := fmt.Sprintf("%s:%d", c.BaseAddress, c.TPMPort)
 	tpmConn, err := net.Dial("tcp", tpmAddr)
 	if err != nil {
